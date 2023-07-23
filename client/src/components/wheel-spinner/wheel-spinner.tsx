@@ -3,54 +3,73 @@ import {
   buildCSSBezierCurve,
   degreeToRadian,
   radianToDegree,
+  clamp,
 } from "../../helpers/math";
 
-// const DEGS_PER_FRAME = 720 / 60;
-const ROTATIONS_PER_SECOND = 2;
-const EXTRA_SPINS = 12;
+const THRESHOLD = 0.05; // degs per second to stop spinning
+const ROTATION_FACTOR = 0.25; // how fast to rotate
+const EXTRA_SPINS = 8; // roughly  how many extra spins?
+const DAMPING_FACTOR = 0.9875; // by how much should we slow down the spinner
+
+const COLORS = ["#003f5c", "#58508d", "#bc5090", "#ff6361", "#ffa600"];
+
+interface SpinPhysics {
+  lastDrawn: number;
+  totalDegreesRotated: number;
+  timeStepRotations: number;
+  spinCount: number;
+}
 
 export function WheelSpinner() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const currentAngleRef = useRef<number>(0.0);
-  const spinTimeMillisRef = useRef<number>(0.0);
-
-  const angleToRotateRef = useRef<number>(0.0);
+  const hasSpanOnceRef = useRef<boolean>(false);
+  const dampenedDegreesPerFrameRef = useRef<number>(0.0); // set this to start spinning
+  const winnerRef = useRef<string>("");
 
   // refs to be used internally for tracking
-  const _totalDegreesRotatedRef = useRef<number>(0.0);
-  const _lastDrawnRef = useRef<number>(0.0);
-  const _dampenRef = useRef(0.0);
-  const _spinTimeCounterRef = useRef<number>(0.0);
+  const spinPhysicsRef = useRef<SpinPhysics>({
+    lastDrawn: 0.0,
+    totalDegreesRotated: 0.0,
+    timeStepRotations: 0.0,
+    spinCount: 0.0,
+  });
 
-  const bezierFn = useMemo(
-    () => buildCSSBezierCurve(0.25, -0.14, 0.7, 1.28),
-    []
-  );
+  const bezierFn = useMemo(() => buildCSSBezierCurve(0.1, -3, -5, 100), []);
 
   useEffect(() => {
     requestAnimationFrame(draw);
   }, []);
 
   return (
-    <div>
-      <canvas ref={canvasRef} width={500} height={500}></canvas>;
+    <>
+      <canvas ref={canvasRef} width={500} height={500}></canvas>
       <button onClick={handleSpinClick}>Spin</button>
-    </div>
+    </>
   );
 
   function handleSpinClick() {
-    // request animation by setting how long we should spin for
-    spinTimeMillisRef.current = 5000.0 + 5000.0 * Math.random();
-    angleToRotateRef.current = 10.37;
+    clearStates();
+    hasSpanOnceRef.current = true;
+
+    const spinPhysics = spinPhysicsRef.current;
+    spinPhysics.spinCount = EXTRA_SPINS + 10 * Math.random(); // introduce randomness to spin
+
+    // request animation by setting degs per frame spin
+    dampenedDegreesPerFrameRef.current = 30;
   }
 
-  function draw(now: number) {
+  function draw(timestamp: number) {
     const ctx = canvasRef?.current?.getContext("2d");
     if (!ctx) return;
 
-    const timeDelta = _lastDrawnRef.current ? now - _lastDrawnRef.current : 0;
-    _lastDrawnRef.current = now;
+    const spinPhysics = spinPhysicsRef.current;
+
+    // calculate ms since last draw
+    const timeDelta = spinPhysics.lastDrawn
+      ? timestamp - spinPhysics.lastDrawn
+      : 0;
+    spinPhysics.lastDrawn = timestamp;
 
     // skip double frame renders
     if (timeDelta >= 0.0 && timeDelta <= 0.00001) {
@@ -58,13 +77,14 @@ export function WheelSpinner() {
       return;
     }
 
+    // clear sceeen
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     const results = [
-      { mood: "Angry", total: 1499, shade: "#0a9627" },
-      { mood: "Happy", total: 478, shade: "#960A2C" },
-      { mood: "Sad", total: 332, shade: "#332E2E" },
-      { mood: "Meh", total: 195, shade: "#F73809" },
+      { mood: "Angry", total: 1499, shade: COLORS[0] },
+      { mood: "Happy", total: 478, shade: COLORS[1] },
+      { mood: "Sad", total: 332, shade: COLORS[2] },
+      { mood: "Meh", total: 195, shade: COLORS[3] },
     ];
 
     const totalScore = results.reduce((sum, { total }) => sum + total, 0);
@@ -72,112 +92,62 @@ export function WheelSpinner() {
     const centerX = ctx.canvas.width / 2;
     const centerY = ctx.canvas.height / 2;
 
-    // move angle if there's an spin animation requested
-    if (angleToRotateRef.current > 0.0) {
-      const degsPerFrame = (360 / 60) * ROTATIONS_PER_SECOND;
+    if (dampenedDegreesPerFrameRef.current > 0.0) {
+      const degsPerFrame = dampenedDegreesPerFrameRef.current;
 
+      const totalDegrees = (360 / ROTATION_FACTOR) * spinPhysics.spinCount;
+      const timeStep = spinPhysics.timeStepRotations / totalDegrees;
+
+      // increment timeStep and track total degrees rotated
+      // we use this to determine when we should apply the damping force
       ctx.translate(centerX, centerY);
-      const degreesToRotate = degsPerFrame * (1 - _dampenRef.current);
-      console.log(1 - _dampenRef.current);
-      ctx.rotate(degreeToRadian(degreesToRotate));
+      const yStep = clamp(bezierFn(timeStep)[1], -1, 1);
+      spinPhysics.timeStepRotations += degsPerFrame;
+      spinPhysics.totalDegreesRotated += degsPerFrame * yStep;
+      const radians = degreeToRadian(degsPerFrame * yStep);
+      ctx.rotate(radians);
       ctx.translate(-centerX, -centerY);
 
-      _totalDegreesRotatedRef.current += degreesToRotate;
-
-      if (_totalDegreesRotatedRef.current / 360 >= EXTRA_SPINS / 2) {
-        _dampenRef.current += 0.003;
-        if (_dampenRef.current > 0.9) {
-          _dampenRef.current = 0.9;
-        }
+      // apply damping force to slow down the spin
+      if (spinPhysics.totalDegreesRotated / 360 >= spinPhysics.spinCount / 3) {
+        dampenedDegreesPerFrameRef.current *= DAMPING_FACTOR;
       }
 
-      if (_totalDegreesRotatedRef.current / 360 >= EXTRA_SPINS) {
-        const currentRotationRadians = getRotationRadiansFromContext(ctx);
-        const currentRotationDegs = radianToDegree(currentRotationRadians);
-        if (
-          Math.abs(angleToRotateRef.current - currentRotationDegs) <=
-          degsPerFrame
-        ) {
-          // because we have a large delta, we just want to directly set
-          // the transform to the rolled rotation when it's close enough
-          const desiredRotation = angleToRotateRef.current;
-          ctx.resetTransform();
-          ctx.translate(centerX, centerY);
-          const desiredRotationRadians = degreeToRadian(desiredRotation);
-          ctx.rotate(desiredRotationRadians);
-          ctx.translate(-centerX, -centerY);
+      // check for result when within the threshold
+      if (degsPerFrame <= THRESHOLD) {
+        console.log(
+          "threshold to stop",
+          radianToDegree(getRotationRadiansFromContext(ctx))
+        );
 
-          angleToRotateRef.current = 0.0;
-          _totalDegreesRotatedRef.current = desiredRotation;
-          _dampenRef.current = 0;
+        // calculate winner
+        const landedAngle = radianToDegree(getRotationRadiansFromContext(ctx));
+        const winner = calculateWinner(results, landedAngle, 0.0);
+        winnerRef.current = winner;
 
-          const matrix = ctx.getTransform();
-          const currentRotationRadians = Math.atan2(matrix.b, matrix.a);
-          const currentRotationDegs = radianToDegree(currentRotationRadians);
-          console.log(currentRotationDegs);
-        }
+        clearStates();
       }
     }
-
-    // if (angleToRotateRef.current > 0.0) {
-    //   const degsPerFrame = (360 / 60) * ROTATIONS_PER_SECOND;
-
-    //   const totalDegrees =
-    //     360 * ROTATIONS_PER_SECOND * EXTRA_SPINS + angleToRotateRef.current;
-    //   const timeStep = _totalDegreesRotatedRef.current / totalDegrees;
-
-    //   const yStep = bezierFn(timeStep)[1];
-    //   _totalDegreesRotatedRef.current += degsPerFrame;
-    //   // _totalDegreesRotatedRef.current += yStep;
-
-    //   ctx.translate(centerX, centerY);
-    //   const radians = degreeToRadian(
-    //     degsPerFrame * yStep * ROTATIONS_PER_SECOND
-    //   );
-    //   ctx.rotate(radians);
-    //   ctx.translate(-centerX, -centerY);
-
-    //   if (_totalDegreesRotatedRef.current / 360 >= EXTRA_SPINS) {
-    //     const matrix = ctx.getTransform();
-    //     const currentRotationRadians = Math.atan2(matrix.b, matrix.a);
-    //     const currentRotationDegs = radianToDegree(currentRotationRadians);
-    //     if (
-    //       Math.abs(angleToRotateRef.current - currentRotationDegs) <=
-    //       degsPerFrame
-    //     ) {
-    //       // because we have a large delta, we just want to directly set
-    //       // the transform to the rolled rotation when it's close enough
-    //       const desiredRotation = angleToRotateRef.current;
-    //       ctx.resetTransform();
-    //       ctx.translate(centerX, centerY);
-    //       const desiredRotationRadians = degreeToRadian(desiredRotation);
-    //       ctx.rotate(desiredRotationRadians);
-    //       ctx.translate(-centerX, -centerY);
-
-    //       _totalDegreesRotatedRef.current = desiredRotation;
-    //       angleToRotateRef.current = 0.0;
-
-    //       const matrix = ctx.getTransform();
-    //       const currentRotationRadians = Math.atan2(matrix.b, matrix.a);
-    //       const currentRotationDegs = radianToDegree(currentRotationRadians);
-    //       console.log(currentRotationDegs);
-    //     }
-    //   }
-    // }
+    // idle animation if not spun yet
+    else if (!hasSpanOnceRef.current) {
+      ctx.translate(centerX, centerY);
+      ctx.rotate(Math.PI / 512);
+      ctx.translate(-centerX, -centerY);
+    }
 
     let currentAngle = 0;
     for (const moodValue of results) {
-      //calculating the angle the slice (portion) will take in the chart
+      // calculating the angle the slice (portion) will take in the chart
       const portionAngle = (moodValue.total / totalScore) * 2 * Math.PI;
       const beginAngle = currentAngle;
       const endAngle = currentAngle + portionAngle;
 
-      //drawing an arc and a line to the center to differentiate the slice from the rest
+      // drawing an arc and a line to the center to differentiate the slice from the rest
       ctx.beginPath();
       ctx.arc(centerX, centerY, 200, beginAngle, endAngle);
       currentAngle += portionAngle;
       ctx.lineTo(centerX, centerY);
-      //filling the slices with the corresponding mood's color
+      // filling the slices with the corresponding mood's color
       ctx.fillStyle = moodValue.shade;
       ctx.fill();
 
@@ -190,9 +160,14 @@ export function WheelSpinner() {
         ctx.canvas.height / 2 +
         (pieRadius / 2) * Math.sin(beginAngle + (endAngle - beginAngle) / 2);
       ctx.fillStyle = "white";
-      ctx.font = "bold 12px Arial";
+
+      if (winnerRef.current === moodValue.mood) {
+        ctx.fillStyle = "turquoise";
+      }
+
+      ctx.font = "bold 24px Calibri";
       const textMetrics = ctx.measureText(moodValue.mood);
-      const textWidthOffset = textMetrics.width * 0.4; // 40% looks better
+      const textWidthOffset = textMetrics.width * 0.5;
       const textHeightOffset =
         (textMetrics.actualBoundingBoxAscent +
           textMetrics.actualBoundingBoxDescent) *
@@ -214,5 +189,42 @@ export function WheelSpinner() {
       return rad + Math.PI * 2;
     }
     return rad;
+  }
+
+  /**
+   *
+   * @param data spinner data
+   * @param landedAngle counterclockwise angle we landed on
+   * @param offset clockwise angle offset to apply (default origin is right of circle)
+   */
+  function calculateWinner(data: any[], landedAngle: number, offset: number) {
+    const totalScore = data.reduce(
+      (sum: number, dataObject) => sum + dataObject.total,
+      0
+    );
+    const computedAngle = 360 - landedAngle + offset; // clockwise
+
+    let lastAngle = 0;
+    for (let i = 0; i < data.length; i++) {
+      const portionAngle = radianToDegree(
+        (data[i].total / totalScore) * 2 * Math.PI
+      );
+      const beginRange = lastAngle;
+      const endRange = lastAngle + portionAngle;
+      if (beginRange <= computedAngle && computedAngle < endRange) {
+        console.log("winner is", data[i].mood);
+        return data[i].mood;
+      }
+      lastAngle = endRange;
+    }
+  }
+
+  function clearStates() {
+    const spinPhysics = spinPhysicsRef.current;
+    dampenedDegreesPerFrameRef.current = 0.0;
+    spinPhysics.timeStepRotations = 0.0;
+    spinPhysics.totalDegreesRotated = 0.0;
+
+    winnerRef.current = "";
   }
 }

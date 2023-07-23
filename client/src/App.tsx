@@ -1,8 +1,9 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
+import triangleIcon from "./assets/triangle.svg";
 import viteLogo from "/vite.svg";
 import { WheelSpinner } from "./components/wheel-spinner/wheel-spinner";
-import "./App.css";
+import "./App.scss";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -19,6 +20,9 @@ function App() {
       </div>
       <div className="spinner">
         <WheelSpinner />
+        <div className="triangle">
+          <img src={triangleIcon} className="triangle" alt="triangle icon" />
+        </div>
       </div>
     </>
   );
