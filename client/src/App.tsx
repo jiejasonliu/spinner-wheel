@@ -1,31 +1,51 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
+import { useRef, useState } from "react";
 import triangleIcon from "./assets/triangle.svg";
-import viteLogo from "/vite.svg";
-import { WheelSpinner } from "./components/wheel-spinner/wheel-spinner";
+import { SpinnerSegment, WheelSpinner, WheelSpinnerForwardRef } from "./components/wheel-spinner/wheel-spinner";
 import "./App.scss";
 
+const TEST_SEGMENTS: SpinnerSegment[] = [
+  {name: 'Jason', weight: 0.47},
+  {name: 'Swifi', weight: 0.47},
+  {name: 'Hex', weight: 0.33},
+]
+
 function App() {
-  const [count, setCount] = useState(0);
+  const [testSegments, setTestSegments] = useState(TEST_SEGMENTS);
+  const [isSpinning, setIsSpinning] = useState<boolean>(false);
+
+  const wheelSpinnerRef = useRef<WheelSpinnerForwardRef>(null);
+
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
+    <div className="app-container">
       <div className="spinner">
-        <WheelSpinner />
+        <WheelSpinner ref={wheelSpinnerRef} segments={testSegments} onSpinFinished={handleSpinFinished} />
         <div className="triangle">
-          <img src={triangleIcon} className="triangle" alt="triangle icon" />
+          <img src={triangleIcon} className="triangle" alt="triangle icon"/>
         </div>
       </div>
-    </>
+      <div className="stats">
+        <div className="header">Probabilities</div>
+        {testSegments.map((segment) => (
+          <div className="segment-detail">
+            <div className="text">{segment.name}</div>
+            <div className="text">{segment.weight}</div>
+          </div>
+        ))}
+        <button className="spin" disabled={isSpinning} onClick={spinWheel}>Spin</button>
+      </div>
+    </div>
   );
+
+  function spinWheel() {
+    wheelSpinnerRef.current?.startSpin();
+    setIsSpinning(true);
+  }
+
+  function handleSpinFinished(name: string): void {
+    setIsSpinning(false);
+  }
+
 }
 
 export default App;
