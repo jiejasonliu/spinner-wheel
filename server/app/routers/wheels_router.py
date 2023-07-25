@@ -22,6 +22,21 @@ def get_wheels(request: Request, db: MongoClient = Depends(get_db)):
     return wheels_list
 
 
+@router.get('/{wheel_id}', response_description='get wheel by id', response_model=WheelModel)
+def get_wheel_by_id(wheel_id: str, request: Request, db: MongoClient = Depends(get_db)):
+    if not ObjectId.is_valid(wheel_id):
+        raise HTTPException(
+            status_code=404, detail=f"{wheel_id} is not a valid bson.ObjectId")
+
+    wheel = db["wheels"].find_one(
+        {"_id": ObjectId(wheel_id)},
+    )
+    if wheel is None:
+        raise HTTPException(
+            status_code=404, detail=f"Could not find wheel with id of {wheel_id}")
+    return wheel
+
+
 @router.post("/", response_description='create a wheel', status_code=status.HTTP_201_CREATED, response_model=WheelModel)
 def create_wheel(request: Request, wheel: CreateWheelModel = Body(...), db: MongoClient = Depends(get_db)):
     wheel = jsonable_encoder(wheel)
@@ -50,6 +65,10 @@ def create_wheel(request: Request, wheel: CreateWheelModel = Body(...), db: Mong
 
 @router.delete("/{wheel_id}", response_description='delete wheel', response_model=WheelModel)
 def delete_wheel(wheel_id: str, request: Request, db: MongoClient = Depends(get_db)):
+    if not ObjectId.is_valid(wheel_id):
+        raise HTTPException(
+            status_code=404, detail=f"{wheel_id} is not a valid bson.ObjectId")
+
     deleted_wheel = db["wheels"].find_one_and_delete(
         {"_id": ObjectId(wheel_id)}
     )
@@ -61,26 +80,34 @@ def delete_wheel(wheel_id: str, request: Request, db: MongoClient = Depends(get_
 
 @router.put("/{wheel_id}", response_description='update wheel information', response_model=WheelModel)
 def update_wheel(wheel_id: str, request: Request, payload: UpdateWheelModel = Body(...), db: MongoClient = Depends(get_db)):
-    try:
-        payload = jsonable_encoder(payload)
-        updated_wheel = db["wheels"].find_one_and_update(
-            {"_id": ObjectId(wheel_id)},
+    if not ObjectId.is_valid(wheel_id):
+        raise HTTPException(
+            status_code=404, detail=f"{wheel_id} is not a valid bson.ObjectId")
+
+    payload = jsonable_encoder(payload)
+    updated_wheel = db["wheels"].find_one_and_update(
+        {"_id": ObjectId(wheel_id)},
+        {
+            "$set":
             {
-                "$set":
-                {
-                    "title": payload['title'],
-                    "rate_of_effect": payload['rate_of_effect']
-                }
-            },
-            return_document=ReturnDocument.AFTER
-        )
-        return updated_wheel
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+                "title": payload['title'],
+                "rate_of_effect": payload['rate_of_effect']
+            }
+        },
+        return_document=ReturnDocument.AFTER
+    )
+    if updated_wheel is None:
+        raise HTTPException(
+            status_code=404, detail=f"Could not update wheel with id of {wheel_id}")
+    return updated_wheel
 
 
 @router.patch("/{wheel_id}/winner", response_description='update wheel winner to update weights', response_model=WheelModel)
 def update_wheel_winner(wheel_id: str, request: Request, payload: UpdateWheelWinnerModel = Body(...), db: MongoClient = Depends(get_db)):
+    if not ObjectId.is_valid(wheel_id):
+        raise HTTPException(
+            status_code=404, detail=f"{wheel_id} is not a valid bson.ObjectId")
+
     payload = jsonable_encoder(payload)
     wheel = db["wheels"].find_one(
         {"_id": ObjectId(wheel_id)},
@@ -101,4 +128,3 @@ def update_wheel_winner(wheel_id: str, request: Request, payload: UpdateWheelWin
         return_document=ReturnDocument.AFTER
     )
     return updated_wheel
-
