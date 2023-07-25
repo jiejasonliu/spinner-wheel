@@ -172,7 +172,6 @@ export const WheelSpinner = forwardRef<
       const portionAngle = (segment.weight / totalWeights) * 2 * Math.PI;
       const beginAngle = currentAngle;
       const endAngle = currentAngle + portionAngle;
-
       // drawing an arc and a line to the center to differentiate the slice from the rest
       ctx.beginPath();
       const pieRadius = Math.min(centerX, centerY);
@@ -183,19 +182,9 @@ export const WheelSpinner = forwardRef<
       ctx.fillStyle = color;
       ctx.fill();
 
-      // draw text and center on pie
-      const labelX =
-        centerX +
-        (pieRadius / 2) * Math.cos(beginAngle + (endAngle - beginAngle) / 2);
-      const labelY =
-        centerY +
-        (pieRadius / 2) * Math.sin(beginAngle + (endAngle - beginAngle) / 2);
-      ctx.fillStyle = "white";
-
-      if (winnerRef.current === segment.name) {
-        ctx.fillStyle = "turquoise";
-      }
-
+      // text configuration
+      ctx.fillStyle =
+        winnerRef.current === segment.name ? "turquoise" : "white";
       ctx.font = "bold 24px Calibri";
       const textMetrics = ctx.measureText(segment.name);
       const textWidthOffset = textMetrics.width * 0.5;
@@ -203,11 +192,31 @@ export const WheelSpinner = forwardRef<
         (textMetrics.actualBoundingBoxAscent +
           textMetrics.actualBoundingBoxDescent) *
         0.5;
+
+      // render text without the real rotation
+      // we calculate these offsets to position text relative to where it should be on pie rotation
+      // but we render it without the real rotation so that the text is always right side up
+      const currentRotationRads = getRotationRadiansFromContext(ctx);
+      const beginAngleOffset = beginAngle + currentRotationRads;
+      const endAngleOffset = endAngle + currentRotationRads;
+      const labelX =
+        centerX +
+        (pieRadius / 2) *
+          Math.cos(beginAngleOffset + (endAngleOffset - beginAngleOffset) / 2);
+      const labelY =
+        centerY +
+        (pieRadius / 2) *
+          Math.sin(beginAngleOffset + (endAngleOffset - beginAngleOffset) / 2);
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(-currentRotationRads);
+      ctx.translate(-centerX, -centerY);
       ctx.fillText(
         segment.name,
         labelX - textWidthOffset,
         labelY + textHeightOffset
       );
+      ctx.restore();
     }
 
     rafHandle.current = requestAnimationFrame(draw);
