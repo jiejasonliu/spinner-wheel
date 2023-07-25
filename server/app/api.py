@@ -1,9 +1,10 @@
+from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI
-
 from .routers import wheels_router
 
-app = FastAPI()
+load_dotenv(find_dotenv())
 
+app = FastAPI()
 # register any routers
 app.include_router(wheels_router.router)
 
