@@ -1,0 +1,48 @@
+@import "../../assets/styles";
+
+.spinner-room {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+
+  .spinner {
+    position: relative;
+
+    .triangle {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      right: 0px;
+      top: 50%;
+      transform: translate(12px, -20px);
+    }
+  }
+}
+
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+
+  .header {
+    font-size: 32px;
+    padding: 8px;
+  }
+
+  .spin-button {
+    margin: 24px 0px;
+    border: none;
+    outline: none;
+    transition: all 0.5s;
+
+    &:hover:not(:disabled) {
+      filter: drop-shadow(0 0 1.5em $bright-turquoise);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: auto;
+    }
+  }
+}

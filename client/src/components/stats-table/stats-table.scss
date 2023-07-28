@@ -1,0 +1,8 @@
+@import "../../assets/styles";
+
+.stats-table-entry,
+.stats-table-text {
+  @include flex-center;
+  width: 100%;
+  font-size: 20px;
+}

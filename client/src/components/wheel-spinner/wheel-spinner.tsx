@@ -1,4 +1,4 @@
-import React, {
+import {
   forwardRef,
   useCallback,
   useEffect,
@@ -11,7 +11,7 @@ import {
   degreeToRadian,
   radianToDegree,
   clamp,
-} from "../../helpers/math";
+} from "@/helpers/math";
 
 const THRESHOLD = 0.05; // degs per second to stop spinning
 const ROTATION_FACTOR = 0.25; // how fast to rotate
