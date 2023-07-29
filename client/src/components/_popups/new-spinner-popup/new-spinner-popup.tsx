@@ -1,6 +1,14 @@
+import { useMemo, useState } from "react";
+import { useSetRecoilState } from "recoil";
 import { PopupModal } from "@/components/popup-modal/popup-modal";
+import {
+  isValidRateOfEffect,
+  CreateWheel,
+  isValidParticipantsList,
+} from "@/models/wheel";
+import { getWheelsClient } from "@/services/wheels-client";
+import { wheelsState } from "@/state/wheels-atom";
 import "./new-spinner-popup.scss";
-import { useState } from "react";
 
 export interface NewSpinnerPopupProps {
   showing: boolean;
@@ -11,6 +19,10 @@ export const NewSpinnerPopup = ({ showing, onClose }: NewSpinnerPopupProps) => {
   const [title, setTitle] = useState("New Spinner");
   const [rateOfEffect, setRateOfEffect] = useState("0.25");
   const [participants, setParticipants] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const setWheels = useSetRecoilState(wheelsState);
+  const wheelsClient = useMemo(getWheelsClient, []);
 
   return (
     <PopupModal
@@ -30,7 +42,7 @@ export const NewSpinnerPopup = ({ showing, onClose }: NewSpinnerPopupProps) => {
         <div className="label-and-input-container">
           <div className="label">Rate of Effect (0-1)</div>
           <input
-            className={isValidRateOfEffect() ? '' : 'error-input'}
+            className={isValidRateOfEffect(rateOfEffect) ? "" : "error-input"}
             value={rateOfEffect}
             onChange={(e) => setRateOfEffect(e.target.value)}
             placeholder="0.25"
@@ -45,32 +57,53 @@ export const NewSpinnerPopup = ({ showing, onClose }: NewSpinnerPopupProps) => {
             placeholder="Person 1, Person 2, Person 3"
           ></input>
         </div>
-        <button className="confirm-button" disabled={!isReadyToCreate()}>
+        <button
+          className="confirm-button"
+          disabled={!isReadyToCreate() || loading}
+          onClick={handleCreateConfirm}
+        >
           Confirm ({parseParticipants().length} participants)
         </button>
       </div>
     </PopupModal>
   );
 
-
   function isReadyToCreate(): boolean {
-    const isDelimitedList = /[a-zA-Z\s]+(,[a-zA-Z\s])*/.test(participants);
-    return !!title && isValidRateOfEffect() && isDelimitedList;
+    return (
+      !!title &&
+      isValidRateOfEffect(rateOfEffect) &&
+      isValidParticipantsList(participants)
+    );
   }
-
-  function isValidRateOfEffect(): boolean {
-    const rateOfEffectNumber = parseFloat(rateOfEffect);
-    if (isNaN(rateOfEffectNumber)) {
-      return false;
-    }
-    return rateOfEffectNumber >= 0.0 && rateOfEffectNumber <= 1.0;
-  }
-
 
   function parseParticipants(): string[] {
     return participants
       .split(",")
       .map((p) => p.trim())
       .filter((p) => !!p);
+  }
+
+  async function handleCreateConfirm() {
+    if (!isReadyToCreate()) {
+      return;
+    }
+
+    const createWheelInfo: CreateWheel = {
+      title: title,
+      rate_of_effect: parseFloat(rateOfEffect),
+      participant_names: parseParticipants(),
+    };
+
+    setLoading(true);
+    const newWheel = await wheelsClient.createWheel(createWheelInfo);
+    setLoading(false);
+
+    setWheels((wheels) => [newWheel, ...wheels]);
+
+    // reset form and close
+    setTitle("New Spinner");
+    setRateOfEffect("0.25");
+    setParticipants("");
+    onClose();
   }
 };

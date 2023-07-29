@@ -2,6 +2,9 @@ import React, { useRef } from "react";
 import ReactDOM from "react-dom";
 import cancelIcon from "@/assets/svgs/cancel-icon.svg";
 import "./popup-modal.scss";
+import { useFocusFirst } from "@/hooks/use-focus-first";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useEscapePress } from "@/hooks/use-key-press";
 
 export interface PopupModalProps {
   children: React.ReactNode;
@@ -18,6 +21,12 @@ export const PopupModal = ({
   onClose,
   actuallyDestroyOnClose = false,
 }: PopupModalProps) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useFocusFirst(contentRef, showing);
+  useFocusTrap(contentRef, showing);
+  useEscapePress(onClose, showing);
+
   const visibleClass = showing ? "visible" : "hidden";
 
   if (actuallyDestroyOnClose && !showing) {
@@ -27,7 +36,7 @@ export const PopupModal = ({
   // render onto <div id="portal"></div> instead of in parent hierarchy but still propagate events
   return ReactDOM.createPortal(
     <div className={`c-popup-modal-overlay ${visibleClass}`}>
-      <div className="c-popup-modal-content">
+      <div className="c-popup-modal-content" ref={contentRef}>
         <div className="c-popup-modal-header">
           <span className="c-popup-modal-header-label">{headerLabel}</span>
           <img

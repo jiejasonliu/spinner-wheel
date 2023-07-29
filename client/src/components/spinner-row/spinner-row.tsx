@@ -1,56 +1,57 @@
 import { useState } from "react";
-import { Participant } from "@/models/wheel";
-import { WheelSpinner } from "../wheel-spinner/wheel-spinner";
-import { EditSpinnerPopup } from "@/components/spinner-row/edit-spinner-popup/edit-spinner-popup";
-import { DeleteSpinnerPopup } from "@/components/spinner-row/delete-spinner-popup/delete-spinner-popup";
-import { NewSpinnerPopup } from "@/components/spinner-row/new-spinner-popup/new-spinner-popup";
+import { EditSpinnerPopup } from "@/components/_popups/edit-spinner-popup/edit-spinner-popup";
+import { DeleteSpinnerPopup } from "@/components/_popups/delete-spinner-popup/delete-spinner-popup";
+import { WheelSpinner } from "@/components/wheel-spinner/wheel-spinner";
+import { Wheel } from "@/models/wheel";
 import "./spinner-row.scss";
 
 export interface SpinnerRowProps {
-  title: string;
-  participants: Participant[];
+  wheel: Wheel;
+  onRowClicked: () => void;
 }
 
-export const SpinnerRow = ({ title, participants }: SpinnerRowProps) => {
+export const SpinnerRow = ({ wheel, onRowClicked }: SpinnerRowProps) => {
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
   return (
     <>
-      <div className="c-spinner-row" onClick={handleRowClick}>
+      <div className="c-spinner-row" onClick={onRowClicked}>
         <div className="tiny-wheel">
           <WheelSpinner
             dimensions={{ w: 100, h: 100 }}
-            segments={participants}
+            segments={wheel.participants}
           />
         </div>
-        <div className="title">{title}</div>
-        <button className="action-button" onClick={handleEditClick}>
+        <div className="title">{wheel.title}</div>
+        <button className="action-button" onClick={(e) => handleEditClick(e)}>
           Edit
         </button>
-        <button className="action-button" onClick={handleDeleteClick}>
+        <button className="action-button" onClick={(e) => handleDeleteClick(e)}>
           Delete
         </button>
       </div>
 
       <EditSpinnerPopup
+        wheel={wheel}
         showing={showEditPopup}
         onClose={() => setShowEditPopup(false)}
       />
       <DeleteSpinnerPopup
+        wheelId={wheel._id}
         showing={showDeletePopup}
         onClose={() => setShowDeletePopup(false)}
       />
     </>
   );
 
-  function handleRowClick() {}
-
-  function handleEditClick() {
+  function handleEditClick(e: React.MouseEvent) {
+    e.stopPropagation();
     setShowEditPopup(true);
   }
 
-  function handleDeleteClick() {
+  function handleDeleteClick(e: React.MouseEvent) {
+    e.stopPropagation();
     setShowDeletePopup(true);
   }
 };
