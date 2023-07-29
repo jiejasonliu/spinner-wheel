@@ -1,8 +1,30 @@
-// todo move colors to here
 $bright-turquoise:  #61dafbaa;
+$modern-grey: #242424;
+$grey: rgb(58, 66, 66);;
 
 @mixin flex-center() {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@mixin borderless-glow-button($radius: 1.5em) {
+  border: none;
+  outline: none;
+  transition: all 0.5s;
+
+  &:hover:not(:disabled) {
+    filter: drop-shadow(0 0 $radius $bright-turquoise);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: auto;
+  }
+}
+
+@mixin text-overflow() {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

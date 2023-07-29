@@ -6,16 +6,11 @@ import {
   WheelSpinnerForwardRef,
 } from "@/components/wheel-spinner/wheel-spinner";
 import { StatsTable } from "@/components/stats-table/stats-table";
+import { TEST_WHEEL } from '@/models/wheel';
 import "./spinner-room-page.scss";
 
-const TEST_SEGMENTS: SpinnerSegment[] = [
-  { name: "Jason", weight: 0.47 },
-  { name: "Swifi", weight: 0.47 },
-  { name: "Hex", weight: 0.33 },
-];
-
 export const SpinnerRoomPage = () => {
-  const [testSegments, setTestSegments] = useState(TEST_SEGMENTS);
+  const [testWheel, setTestWheel] = useState(TEST_WHEEL);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const wheelSpinnerRef = useRef<WheelSpinnerForwardRef>(null);
 
@@ -24,7 +19,7 @@ export const SpinnerRoomPage = () => {
       <div className="spinner">
         <WheelSpinner
           ref={wheelSpinnerRef}
-          segments={testSegments}
+          segments={testWheel.participants}
           onSpinFinished={handleSpinFinished}
         />
         <div className="triangle">
@@ -34,7 +29,7 @@ export const SpinnerRoomPage = () => {
       <div className="stats-container">
         <div className="header">Probabilities</div>
         <StatsTable
-          entries={testSegments.map((s) => ({ name: s.name, value: s.weight }))}
+          entries={testWheel.participants}
         />
         <button className="spin-button" disabled={isSpinning} onClick={spinWheel}>
           Spin

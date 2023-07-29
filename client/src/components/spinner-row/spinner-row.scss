@@ -1,0 +1,39 @@
+@import "../../assets/styles";
+
+.c-spinner-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+
+    border: 2px solid $grey;
+    border-radius: 16px;
+    padding: 24px 48px;
+
+    &:hover {
+        transition: all 0.45s ease;
+        border-color: darkslategrey;
+        background-color: darkslategrey;
+        cursor: pointer;
+    }
+
+    .tiny-wheel {
+        display: flex;
+    }
+
+    .title {
+        font-size: 24px;
+        min-width: 160px;
+        @include text-overflow;
+        margin-right: auto;
+    }
+
+    .action-button {
+        flex: 0 0 120px;
+        height: fit-content;
+        padding: 20px;
+        min-width: 80px;
+
+        @include borderless-glow-button;
+    }
+}
