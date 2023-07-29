@@ -43,7 +43,7 @@ def create_wheel(request: Request, wheel: CreateWheelModel = Body(...), db: Mong
     participant_names = jsonable_encoder(wheel['participant_names'])
 
     # list({ name: str, weight: int })
-    weight = 1 / len(participant_names)
+    weight = round(1 / len(participant_names), 3)
     participants: List[ParticipantModel] = [
         {'name': name, 'weight': weight}
         for name in participant_names
