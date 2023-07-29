@@ -13,10 +13,10 @@ import {
   clamp,
 } from "@/helpers/math";
 
-const THRESHOLD = 0.05; // degs per second to stop spinning
+const THRESHOLD = 0.03; // degs per second to stop spinning
 const ROTATION_FACTOR = 0.25; // how fast to rotate
 const EXTRA_SPINS = 12; // roughly  how many extra spins?
-const DAMPING_FACTOR = 0.99; // by how much should we slow down the spinner
+const DAMPING_FACTOR = 0.992; // by how much should we slow down the spinner
 
 const COLORS = ["#003f5c", "#58508d", "#bc5090", "#ff6361", "#ffa600"];
 
@@ -32,6 +32,7 @@ export type SpinnerSegment = { name: string; weight: number };
 export interface WheelSpinnerProps {
   segments: SpinnerSegment[];
   dimensions?: { w: number; h: number };
+  idleSpeed?: number; // radians per second
   onSpinFinished?: (name: string) => void;
 }
 
@@ -47,6 +48,7 @@ export const WheelSpinner = forwardRef<
     {
       segments,
       dimensions = { w: 500, h: 500 },
+      idleSpeed = Math.PI / 768,
       onSpinFinished,
     }: WheelSpinnerProps,
     ref
@@ -172,7 +174,7 @@ export const WheelSpinner = forwardRef<
       // idle animation if not spun yet
       else if (!hasSpanOnceRef.current) {
         ctx.translate(centerX, centerY);
-        ctx.rotate(Math.PI / 512);
+        ctx.rotate(idleSpeed);
         ctx.translate(-centerX, -centerY);
       }
 

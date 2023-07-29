@@ -42,26 +42,34 @@ export const SpinnerRoomPage = () => {
 
   return (
     <div className="spinner-room">
-      <div className="spinner">
-        <WheelSpinner
-          ref={wheelSpinnerRef}
-          segments={wheel.participants}
-          onSpinFinished={handleSpinFinished}
-        />
-        <div className="triangle">
-          <img src={triangleIcon} className="triangle" alt="triangle icon" />
+      <div className="room-details">
+        <div className="title">{wheel.title}</div>
+        <div className="rate-of-effect">
+          Rate of Effect: {wheel.rate_of_effect}
         </div>
       </div>
-      <div className="stats-container">
-        <div className="header">Probabilities</div>
-        <StatsTable entries={wheel.participants} />
-        <button
-          className="spin-button"
-          disabled={isSpinning}
-          onClick={spinWheel}
-        >
-          Spin
-        </button>
+      <div className="spinner-details">
+        <div className="spinner">
+          <WheelSpinner
+            ref={wheelSpinnerRef}
+            segments={wheel.participants}
+            onSpinFinished={handleSpinFinished}
+          />
+          <div className="triangle">
+            <img src={triangleIcon} className="triangle" alt="triangle icon" />
+          </div>
+        </div>
+        <div className="stats-container">
+          <div className="header">Probabilities</div>
+          <StatsTable entries={wheel.participants} />
+          <button
+            className="spin-button"
+            disabled={isSpinning}
+            onClick={spinWheel}
+          >
+            Spin
+          </button>
+        </div>
       </div>
     </div>
   );
