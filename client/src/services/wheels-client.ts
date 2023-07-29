@@ -98,7 +98,7 @@ export function getWheelsClient() {
   ): Promise<Wheel> {
     try {
       const response = await fetch(`${API_URL}/wheels/${id}/winner`, {
-        method: "POST",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateWheelWinnerInfo),
       });

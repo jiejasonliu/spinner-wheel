@@ -1,25 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useNavigate, useParams } from "react-router-dom";
+import { useRecoilState } from "recoil";
 import triangleIcon from "@/assets/svgs/triangle.svg";
 import { StatsTable } from "@/components/stats-table/stats-table";
 import {
   WheelSpinner,
   WheelSpinnerForwardRef,
 } from "@/components/wheel-spinner/wheel-spinner";
+import { toHumanReadableDate } from "@/helpers/date";
+import { Wheel, UpdateWheelWinner } from "@/models/wheel";
 import { getWheelsClient } from "@/services/wheels-client";
 import { wheelsState } from "@/state/wheels-atom";
 import "./spinner-room-page.scss";
-import { Wheel } from "@/models/wheel";
 
 export const SpinnerRoomPage = () => {
   const [wheel, setWheel] = useState<Wheel | undefined>(undefined);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
-  const wheels = useRecoilValue(wheelsState);
+
   const wheelSpinnerRef = useRef<WheelSpinnerForwardRef>(null);
 
+  const [wheels, setWheels] = useRecoilState(wheelsState);
   const wheelsClient = useMemo(getWheelsClient, []);
   const params = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -34,7 +37,7 @@ export const SpinnerRoomPage = () => {
         setWheel(remoteWheel);
       }
     })();
-  }, []);
+  }, [wheels]);
 
   if (!wheel) {
     return null;
@@ -43,9 +46,18 @@ export const SpinnerRoomPage = () => {
   return (
     <div className="spinner-room">
       <div className="room-details">
-        <div className="title">{wheel.title}</div>
-        <div className="rate-of-effect">
-          Rate of Effect: {wheel.rate_of_effect}
+        <div className="title" onClick={navigateHome}>
+          {wheel.title}
+        </div>
+        <div className="detail">
+          <span className="label">Rate of Effect: </span>
+          {wheel.rate_of_effect}
+        </div>
+        <div className="detail">
+          <span className="label">Last Spun: </span>
+          {wheel.last_spun_at
+            ? toHumanReadableDate(wheel.last_spun_at)
+            : "Never"}
         </div>
       </div>
       <div className="spinner-details">
@@ -79,8 +91,42 @@ export const SpinnerRoomPage = () => {
     setIsSpinning(true);
   }
 
-  function handleSpinFinished(name: string): void {
-    console.log("wheel landed on", name);
-    setIsSpinning(false);
+  function navigateHome() {
+    navigate("/");
+  }
+
+  async function handleSpinFinished(winnerName: string) {
+    if (!wheel?._id) {
+      return;
+    }
+
+    const updatedWheelWinnerInfo: UpdateWheelWinner = {
+      winner: winnerName,
+    };
+    const wheelWithUpdatedWinner = await wheelsClient.updateWheelWinner(
+      wheel._id,
+      updatedWheelWinnerInfo
+    );
+
+    // upsert wheel locally after a delay
+    setTimeout(() => {
+      const hasWheelInLocalState = wheels.find(
+        (localWheel) => localWheel._id === wheelWithUpdatedWinner._id
+      );
+      if (hasWheelInLocalState) {
+        setWheels((wheels) =>
+          wheels.map((localWheel) => {
+            if (localWheel._id === wheelWithUpdatedWinner._id) {
+              return wheelWithUpdatedWinner;
+            }
+            return localWheel;
+          })
+        );
+      } else {
+        setWheels((localWheels) => [wheelWithUpdatedWinner, ...localWheels]);
+      }
+
+      setIsSpinning(false);
+    }, 1500);
   }
 };

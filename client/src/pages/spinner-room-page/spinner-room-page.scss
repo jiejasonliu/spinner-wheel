@@ -9,19 +9,30 @@
 
   .room-details {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-evenly;
     align-items: center;
 
+    gap: 8px;
     padding: 8px;
     border-bottom: 2px solid $grey;
 
     .title {
       font-size: 40px;
       font-weight: 500;
+
+      &:hover {
+        transition: all 0.3s;
+        color: $green-blue;
+        cursor: pointer;
+      }
     }
 
-    .rate-of-effect {
+    .detail {
       font-size: 20px;
+      color: $green-blue;
+      .label {
+        color: white;
+      }
     }
   }
 
@@ -60,7 +71,7 @@
       margin-right: 32px;
 
       .header {
-        font-size: 32px;
+        font-size: 36px;
         padding: 8px;
       }
 

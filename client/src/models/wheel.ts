@@ -3,7 +3,7 @@ export interface Wheel {
   title: string;
   participants: Participant[];
   rate_of_effect: number;
-  last_spun_at: Date | null;
+  last_spun_at: string | null;
 }
 export interface Participant {
   name: string;

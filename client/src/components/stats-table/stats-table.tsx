@@ -1,4 +1,4 @@
-import './stats-table.scss';
+import "./stats-table.scss";
 
 export interface StatEntry {
   name: string;
@@ -10,10 +10,17 @@ export interface StatsTableProps {
 }
 
 export const StatsTable = ({ entries }: StatsTableProps) => {
+  const entriesSortedByHighestWeight = [...entries].sort((a, b) =>
+    a.weight > b.weight ? -1 : 1
+  );
+
   return (
     <>
-      {entries.map((entry) => (
-        <div className="stats-table-entry" key={`${entry.name}-${entry.weight}`}>
+      {entriesSortedByHighestWeight.map((entry) => (
+        <div
+          className="stats-table-entry"
+          key={`${entry.name}-${entry.weight}`}
+        >
           <div className="stats-table-text">{entry.name}</div>
           <div className="stats-table-text">{entry.weight}</div>
         </div>

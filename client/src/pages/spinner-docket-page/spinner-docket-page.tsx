@@ -7,12 +7,18 @@ import { getWheelsClient } from "@/services/wheels-client";
 import { wheelsState } from "@/state/wheels-atom";
 import "./spinner-docket-page.scss";
 
+const MIN_DATE = new Date(-8640000000000000);
+
 export const SpinnerDocketPage = () => {
   const [showNewSpinnerPopup, setShowNewSpinnerPopup] = useState(false);
 
   const [wheels, setWheels] = useRecoilState(wheelsState);
   const wheelsClient = useMemo(getWheelsClient, []);
   const navigate = useNavigate();
+
+  const wheelsSortedByLastSpun = [...wheels].sort((a, b) =>
+    (a.last_spun_at ?? MIN_DATE) > (b.last_spun_at ?? MIN_DATE) ? -1 : 1
+  );
 
   useEffect(() => {
     (async () => {
@@ -31,7 +37,7 @@ export const SpinnerDocketPage = () => {
           </button>
         </div>
         {wheels.length ? (
-          wheels.map((wheel) => (
+          wheelsSortedByLastSpun.map((wheel) => (
             <div className="spinner-row" key={wheel._id}>
               <SpinnerRow
                 wheel={wheel}
