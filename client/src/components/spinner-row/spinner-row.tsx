@@ -21,6 +21,7 @@ export const SpinnerRow = ({ wheel, onRowClicked }: SpinnerRowProps) => {
           <WheelSpinner
             dimensions={{ w: 100, h: 100 }}
             segments={wheel.participants}
+            idleSpeed={getRandomIdleSpeed()}
           />
         </div>
         <div className="title">{wheel.title}</div>
@@ -44,6 +45,13 @@ export const SpinnerRow = ({ wheel, onRowClicked }: SpinnerRowProps) => {
       />
     </>
   );
+
+  function getRandomIdleSpeed(): number {
+    const startRange = 384;
+    const endRange = 896;
+    const randomRange = Math.random() * (endRange - startRange + 1) + startRange;
+    return Math.PI / randomRange;
+  }
 
   function handleEditClick(e: React.MouseEvent) {
     e.stopPropagation();
