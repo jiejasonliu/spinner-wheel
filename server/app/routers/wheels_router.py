@@ -52,7 +52,7 @@ def create_wheel(request: Request, wheel: CreateWheelModel = Body(...), db: Mong
     new_wheel = db["wheels"].insert_one(
         {
             'title': wheel['title'],
-            'rate_of_effect': wheel['rate_of_effect'],
+            'rate_of_effect': round(wheel['rate_of_effect'], 3),
             'participants': participants,
         }
     )
@@ -91,7 +91,7 @@ def update_wheel(wheel_id: str, request: Request, payload: UpdateWheelModel = Bo
             "$set":
             {
                 "title": payload['title'],
-                "rate_of_effect": payload['rate_of_effect']
+                "rate_of_effect": round(payload['rate_of_effect'], 3)
             }
         },
         return_document=ReturnDocument.AFTER
