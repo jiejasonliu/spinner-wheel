@@ -1,0 +1,83 @@
+@import "../../assets/styles";
+
+$bg-opacity: 0.75; // opacity to set background if modal is open
+$x-axis: 50%; // where to place popup on x-axis
+$y-axis: 25%; // where to place popup on y-axis
+$z-popup-modal: 100;
+
+.c-popup-modal-overlay {
+  z-index: $z-popup-modal;
+  position: fixed;
+  inset: 0;
+  min-width: 100%;
+  min-height: 100%;
+  background-color: rgba(0, 0, 0, $bg-opacity);
+
+  transition: visibility 150ms ease-out, opacity 150ms ease-out;
+
+  &.visible {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  &.hidden {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+.c-popup-modal-content {
+  z-index: $z-popup-modal;
+  position: absolute;
+  left: $x-axis;
+  top: $y-axis;
+  transform: translate(
+    -$x-axis,
+    -$y-axis
+  ); // center on axis based on content size
+  background: $modern-grey;
+  padding: 16px 24px;
+  border-radius: 16px;
+  box-sizing: border-box;
+
+  @media screen and (min-width: $small-screen) {
+    min-width: 450px;
+  }
+
+  @media screen and (max-width: $small-screen) {
+    width: 90%;
+  }
+
+  .c-popup-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+
+    color: $green-blue;
+    font-size: 24px;
+    font-weight: 500;
+
+    .c-popup-modal-header-label {
+      @media screen and (min-width: $large-screen) {
+        max-width: 30vw;
+      }
+
+      @media screen and (min-width: $giant-screen) {
+        max-width: 25vw;
+      }
+    }
+  }
+
+  .c-popup-modal-cancel-icon {
+    flex-shrink: 0;
+    align-self: flex-start;
+    transform: translateX(25%);
+    opacity: 0.7;
+
+    &:hover {
+      opacity: 1;
+      cursor: pointer;
+    }
+  }
+}

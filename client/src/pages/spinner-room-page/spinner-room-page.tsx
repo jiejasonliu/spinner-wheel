@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
-import triangleIcon from "@/assets/triangle.svg";
+import triangleIcon from "@/assets/svgs/triangle.svg";
 import {
-  SpinnerSegment,
   WheelSpinner,
   WheelSpinnerForwardRef,
 } from "@/components/wheel-spinner/wheel-spinner";

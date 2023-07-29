@@ -13,9 +13,12 @@
     flex-direction: column;
     justify-content: center;
     text-align: center;
+    padding-bottom: 24px;
 
     .create-new-button {
       @include borderless-glow-button(1.25em);
+      filter: drop-shadow(0 0 0.5em $dark-grey);
+      padding: 12px;
     }
   }
 

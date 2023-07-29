@@ -1,0 +1,49 @@
+@import "../../../assets/styles";
+
+.new-spinner-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  padding: 32px 16px 16px;
+  font-size: 18px;
+  color: lightgray;
+
+  input {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    padding: 6px;
+    border-radius: 4px;
+  }
+
+  .label {
+    @include text-overflow;
+  }
+
+  .label-and-input-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 64px;
+
+    .error-input {
+      border: 1px solid palevioletred;
+    }
+  }
+
+  .add-participants-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+
+    .participants-input {
+      text-align: center;
+    }
+  }
+
+  .confirm-button {
+    @include borderless-glow-button(0.25em);
+    margin-top: 16px;
+  }
+}
