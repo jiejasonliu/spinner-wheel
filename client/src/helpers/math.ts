@@ -45,3 +45,22 @@ export function clamp(num: number, min: number, max: number) {
   if (num > max) return max;
   return num;
 }
+
+
+// [-180 to 180)
+export function normalizeDegree(degree: number) {
+  degree = degree % 360;
+  if ( degree >= 180) {
+    return degree - 360;
+  }
+  if ( degree < -180) {
+    return degree + 360;
+  }
+  return degree;
+}
+
+// https://stackoverflow.com/a/15070642/14278524
+export function isDegreeInRange(targetDegree: number, current: number, range: number) {
+  const normalizedDiff = normalizeDegree(targetDegree - current);
+  return normalizedDiff >= -range && normalizedDiff < range;
+}

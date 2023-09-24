@@ -7,6 +7,7 @@ import {
   WheelSpinner,
   WheelSpinnerForwardRef,
 } from "@/components/wheel-spinner/wheel-spinner";
+import * as audio from "@/helpers/audio";
 import { toHumanReadableDate } from "@/helpers/date";
 import { Wheel, UpdateWheelWinner } from "@/models/wheel";
 import { getWheelsClient } from "@/services/wheels-client";
@@ -65,6 +66,7 @@ export const SpinnerRoomPage = () => {
           <WheelSpinner
             ref={wheelSpinnerRef}
             segments={wheel.participants}
+            onCrossSegment={handleCrossSegment}
             onSpinFinished={handleSpinFinished}
           />
           <div className="triangle">
@@ -95,10 +97,16 @@ export const SpinnerRoomPage = () => {
     navigate("/");
   }
 
+  async function handleCrossSegment() {
+    audio.playDing();
+  }
+
   async function handleSpinFinished(winnerName: string) {
     if (!wheel?._id) {
       return;
     }
+
+    audio.playApplause(50);
 
     const updatedWheelWinnerInfo: UpdateWheelWinner = {
       winner: winnerName,

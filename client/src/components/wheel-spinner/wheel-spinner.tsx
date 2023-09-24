@@ -11,6 +11,7 @@ import {
   degreeToRadian,
   radianToDegree,
   clamp,
+  isDegreeInRange,
 } from "@/helpers/math";
 
 const THRESHOLD = 0.03; // degs per second to stop spinning
@@ -33,6 +34,7 @@ export interface WheelSpinnerProps {
   segments: SpinnerSegment[];
   dimensions?: { w: number; h: number };
   idleSpeed?: number; // radians per second
+  onCrossSegment?: () => void;
   onSpinFinished?: (name: string) => void;
 }
 
@@ -49,6 +51,7 @@ export const WheelSpinner = forwardRef<
       segments,
       dimensions = { w: 500, h: 500 },
       idleSpeed = Math.PI / 768,
+      onCrossSegment,
       onSpinFinished,
     }: WheelSpinnerProps,
     ref
@@ -70,6 +73,10 @@ export const WheelSpinner = forwardRef<
     const rafHandle = useRef<number | undefined>(undefined);
 
     const bezierFn = useMemo(() => buildCSSBezierCurve(0.1, -4.5, -5, 100), []);
+    const degreesToPlaySound = useMemo(
+      () => getClockwiseDegreesToPlaySound(),
+      [segments]
+    );
     const drawFunction = useCallback(draw, [segments]);
 
     useEffect(() => {
@@ -137,10 +144,12 @@ export const WheelSpinner = forwardRef<
         // we use this to determine when we should apply the damping force
         ctx.translate(centerX, centerY);
         const yStep = clamp(bezierFn(timeStep)[1], -1, 1);
+        const degToSpin = degsPerFrame * yStep;
+        const radiansToSpin = degreeToRadian(degToSpin);
+
         spinPhysics.timeStepRotations += degsPerFrame;
-        spinPhysics.totalDegreesRotated += degsPerFrame * yStep;
-        const radians = degreeToRadian(degsPerFrame * yStep);
-        ctx.rotate(radians);
+        spinPhysics.totalDegreesRotated += degToSpin;
+        ctx.rotate(radiansToSpin);
         ctx.translate(-centerX, -centerY);
 
         // apply damping force to slow down the spin
@@ -149,6 +158,22 @@ export const WheelSpinner = forwardRef<
           spinPhysics.spinCount / 3
         ) {
           dampenedDegreesPerFrameRef.current *= DAMPING_FACTOR;
+        }
+
+        // emit lifecycle if crossing a segment
+        const clockwiseCurrentRotation =
+          360 - radianToDegree(getRotationRadiansFromContext(ctx));
+        const thresholdRange = degToSpin * 0.5;
+        if (
+          degreesToPlaySound.some((targetDegree) =>
+            isDegreeInRange(
+              targetDegree,
+              clockwiseCurrentRotation,
+              thresholdRange
+            )
+          )
+        ) {
+          onCrossSegment?.();
         }
 
         // check for result when within the threshold
@@ -277,19 +302,39 @@ export const WheelSpinner = forwardRef<
       const computedAngle = 360 - landedAngle + offset; // clockwise
 
       let lastAngle = 0;
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
+      for (const segment of segments) {
         const portionAngle = radianToDegree(
           (segment.weight / totalWeight) * 2 * Math.PI
         );
         const beginRange = lastAngle;
         const endRange = lastAngle + portionAngle;
+
         if (beginRange <= computedAngle && computedAngle < endRange) {
           console.log("winner is", segment.name);
           return segment.name;
         }
         lastAngle = endRange;
       }
+    }
+
+    function getClockwiseDegreesToPlaySound(): number[] {
+      const totalWeight = segments.reduce(
+        (sum: number, segment) => sum + segment.weight,
+        0
+      );
+
+      const clockwiseAnglesToPlaySound: number[] = [];
+      let lastAngle = 0;
+
+      for (const segment of segments) {
+        const portionAngle = radianToDegree(
+          (segment.weight / totalWeight) * 2 * Math.PI
+        );
+        const segmentDividerAngle = lastAngle + portionAngle;
+        clockwiseAnglesToPlaySound.push(segmentDividerAngle);
+        lastAngle = segmentDividerAngle;
+      }
+      return clockwiseAnglesToPlaySound;
     }
 
     function clearStates() {

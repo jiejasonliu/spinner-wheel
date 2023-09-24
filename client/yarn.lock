@@ -260,6 +260,11 @@
     "@swc/core-win32-ia32-msvc" "1.3.70"
     "@swc/core-win32-x64-msvc" "1.3.70"
 
+"@types/howler@^2.2.9":
+  version "2.2.9"
+  resolved "https://registry.yarnpkg.com/@types/howler/-/howler-2.2.9.tgz#cc2ceaa27663cf263bb15e557ba92bfbb49128eb"
+  integrity sha512-kNi8mBM+IAmMzo1xhFlR8pKUWqCz9kEtiT1Xp5hZW0ynQl2wUg0EAm+brsHvhahMzxlADt0Xhu0jV/NHmk/Ibg==
+
 "@types/json-schema@^7.0.12":
   version "7.0.12"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.12.tgz#d70faba7039d5fca54c83c7dbab41051d2b6f6cb"
@@ -823,6 +828,11 @@ has-flag@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-4.0.0.tgz#944771fd9c81c81265c4d6941860da06bb59479b"
   integrity sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==
+
+howler@^2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/howler/-/howler-2.2.4.tgz#bd3df4a4f68a0118a51e4bd84a2bfc2e93e6e5a1"
+  integrity sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==
 
 ignore@^5.2.0, ignore@^5.2.4:
   version "5.2.4"
