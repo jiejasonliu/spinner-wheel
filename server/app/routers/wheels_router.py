@@ -43,7 +43,7 @@ def create_wheel(request: Request, wheel: CreateWheelModel = Body(...), db: Mong
     participant_names = jsonable_encoder(wheel['participant_names'])
 
     # list({ name: str, weight: int })
-    weight = round(1 / len(participant_names), 3)
+    weight = 1 / len(participant_names)
     participants: List[ParticipantModel] = [
         {'name': name, 'weight': weight}
         for name in participant_names
@@ -52,7 +52,7 @@ def create_wheel(request: Request, wheel: CreateWheelModel = Body(...), db: Mong
     new_wheel = db["wheels"].insert_one(
         {
             'title': wheel['title'],
-            'rate_of_effect': round(wheel['rate_of_effect'], 3),
+            'rate_of_effect': wheel['rate_of_effect'],
             'participants': participants,
         }
     )
@@ -91,7 +91,7 @@ def update_wheel(wheel_id: str, request: Request, payload: UpdateWheelModel = Bo
             "$set":
             {
                 "title": payload['title'],
-                "rate_of_effect": round(payload['rate_of_effect'], 3)
+                "rate_of_effect": payload['rate_of_effect']
             }
         },
         return_document=ReturnDocument.AFTER

@@ -30,7 +30,7 @@ def update_weighted_choices(participants: List[ParticipantModel], winner: str, a
     normalized_participants = [
         {
             'name': p['name'],
-            'weight': round(p['weight'] / total_weights, 3)
+            'weight': p['weight'] / total_weights
         }
         for p in non_normalized_participants
     ]
