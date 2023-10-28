@@ -13,6 +13,7 @@ import {
   clamp,
   isDegreeInRange,
 } from "@/helpers/math";
+import { WheelDrawerInfo } from "./draw/wheel-drawer-info";
 
 const THRESHOLD = 0.03; // degs per second to stop spinning
 const ROTATION_FACTOR = 0.25; // how fast to rotate
@@ -73,8 +74,8 @@ export const WheelSpinner = forwardRef<
     const rafHandle = useRef<number | undefined>(undefined);
 
     const bezierFn = useMemo(() => buildCSSBezierCurve(0.1, -4.5, -5, 100), []);
-    const degreesToPlaySound = useMemo(
-      () => getClockwiseDegreesToPlaySound(),
+    const degreesCrossingEachSegment = useMemo(
+      () => getClockwiseDegreesCrossingEachSegment(),
       [segments]
     );
     const drawFunction = useCallback(draw, [segments]);
@@ -128,12 +129,13 @@ export const WheelSpinner = forwardRef<
         return;
       }
 
-      // clear sceeen
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // clear sceeen (extra padding to invalidate text overflow)
+      ctx.clearRect(0, 0, canvas.width * 1.1, canvas.height * 1.1);
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
 
+      // when we start dampening, we can assume that the animation has started
       if (dampenedDegreesPerFrameRef.current > 0.0) {
         const degsPerFrame = dampenedDegreesPerFrameRef.current;
 
@@ -165,7 +167,7 @@ export const WheelSpinner = forwardRef<
           360 - radianToDegree(getRotationRadiansFromContext(ctx));
         const thresholdRange = degToSpin * 0.5;
         if (
-          degreesToPlaySound.some((targetDegree) =>
+          degreesCrossingEachSegment.some((targetDegree) =>
             isDegreeInRange(
               targetDegree,
               clockwiseCurrentRotation,
@@ -203,29 +205,53 @@ export const WheelSpinner = forwardRef<
         ctx.translate(-centerX, -centerY);
       }
 
-      let currentAngle = 0;
       const totalWeights = segments.reduce(
         (sum, segment) => sum + segment.weight,
         0
       );
+      const pieRadius = Math.min(centerX, centerY);
 
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
-        const color = COLORS[i % COLORS.length];
+      function drawForSegments(
+        drawFn: (info: WheelDrawerInfo, drawIndex: number) => void
+      ) {
+        let currentAngle = 0;
+        for (let i = 0; i < segments.length; i++) {
+          const segment = segments[i];
 
-        // calculating the angle the slice (portion) will take in the chart
-        const portionAngle = (segment.weight / totalWeights) * 2 * Math.PI;
-        const beginAngle = currentAngle;
-        const endAngle = currentAngle + portionAngle;
+          // calculating the angle the slice (portion) will take in the chart
+          const portionAngle = (segment.weight / totalWeights) * 2 * Math.PI;
+          const beginAngle = currentAngle;
+          const endAngle = currentAngle + portionAngle;
+          currentAngle += portionAngle;
+
+          drawFn(
+            {
+              segment,
+              angles: { beginAngle, endAngle, portionAngle },
+            },
+            i
+          );
+        }
+      }
+
+      // draw wheel fill
+      drawForSegments((info: WheelDrawerInfo, drawIndex: number) => {
+        const { beginAngle, endAngle } = info.angles;
+        const color = COLORS[drawIndex % COLORS.length];
+
         // drawing an arc and a line to the center to differentiate the slice from the rest
         ctx.beginPath();
-        const pieRadius = Math.min(centerX, centerY);
         ctx.arc(centerX, centerY, pieRadius, beginAngle, endAngle);
-        currentAngle += portionAngle;
         ctx.lineTo(centerX, centerY);
         // filling the slices with the corresponding mood's color
         ctx.fillStyle = color;
         ctx.fill();
+      });
+
+      // draw names
+      drawForSegments((info: WheelDrawerInfo) => {
+        const { beginAngle, endAngle } = info.angles;
+        const segment = info.segment;
 
         // text configuration
         ctx.fillStyle =
@@ -270,7 +296,7 @@ export const WheelSpinner = forwardRef<
           labelY + textHeightOffset
         );
         ctx.restore();
-      }
+      });
 
       rafHandle.current = requestAnimationFrame(draw);
     }
@@ -317,13 +343,13 @@ export const WheelSpinner = forwardRef<
       }
     }
 
-    function getClockwiseDegreesToPlaySound(): number[] {
+    function getClockwiseDegreesCrossingEachSegment(): number[] {
       const totalWeight = segments.reduce(
         (sum: number, segment) => sum + segment.weight,
         0
       );
 
-      const clockwiseAnglesToPlaySound: number[] = [];
+      const clockwiseAnglesCrossingEachSegment: number[] = [];
       let lastAngle = 0;
 
       for (const segment of segments) {
@@ -331,10 +357,10 @@ export const WheelSpinner = forwardRef<
           (segment.weight / totalWeight) * 2 * Math.PI
         );
         const segmentDividerAngle = lastAngle + portionAngle;
-        clockwiseAnglesToPlaySound.push(segmentDividerAngle);
+        clockwiseAnglesCrossingEachSegment.push(segmentDividerAngle);
         lastAngle = segmentDividerAngle;
       }
-      return clockwiseAnglesToPlaySound;
+      return clockwiseAnglesCrossingEachSegment;
     }
 
     function clearStates() {
