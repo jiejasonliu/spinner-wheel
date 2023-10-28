@@ -14,6 +14,7 @@ import {
   isDegreeInRange,
 } from "@/helpers/math";
 import { WheelDrawerInfo } from "./draw/wheel-drawer-info";
+import { tryFitText } from "@/components/wheel-spinner/draw/fit-text";
 
 const THRESHOLD = 0.03; // degs per second to stop spinning
 const ROTATION_FACTOR = 0.25; // how fast to rotate
@@ -261,7 +262,15 @@ export const WheelSpinner = forwardRef<
           Math.min(canvas.width, canvas.height) / 8
         );
         ctx.font = `bold ${Math.round(fontSize)}px Calibri`;
-        const textMetrics = ctx.measureText(segment.name);
+
+        const maxTextWidth = pieRadius;
+        const fitText = tryFitText(
+          segment.name,
+          maxTextWidth,
+          (text) => ctx.measureText(text).width
+        );
+
+        const textMetrics = ctx.measureText(fitText);
         const textWidthOffset = textMetrics.width * 0.5;
         const textHeightOffset =
           (textMetrics.actualBoundingBoxAscent +
@@ -291,7 +300,7 @@ export const WheelSpinner = forwardRef<
         ctx.rotate(-currentRotationRads);
         ctx.translate(-centerX, -centerY);
         ctx.fillText(
-          segment.name,
+          fitText,
           labelX - textWidthOffset,
           labelY + textHeightOffset
         );
