@@ -1,5 +1,5 @@
 # environment variables anywhere (not only root)
-*.env
+*.env*
 
 # dependencies
 node_modules

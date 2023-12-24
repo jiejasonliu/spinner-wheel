@@ -2,7 +2,7 @@ from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import wheels_router
+from .routers import histories_router, wheels_router
 
 load_dotenv(find_dotenv())
 
@@ -23,6 +23,7 @@ app.add_middleware(
 
 
 # register any routers
+app.include_router(histories_router.router)
 app.include_router(wheels_router.router)
 
 

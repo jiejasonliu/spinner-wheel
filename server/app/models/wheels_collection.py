@@ -1,25 +1,18 @@
-import uuid
-
-from bson import ObjectId
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 
 from .object_id import PyObjectId
+from .participant_model import ParticipantModel
 
-
-class ParticipantModel(BaseModel):
-    name: str
-    weight: float
-
-
+# collection: "wheels"
 class WheelModel(BaseModel):
-    id: PyObjectId = Field(alias="_id")
     title: str
     participants: List[ParticipantModel]
     rate_of_effect: float
     last_spun_at: Optional[datetime] = None
 
+    id: PyObjectId = Field(alias="_id")
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 

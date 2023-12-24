@@ -6,8 +6,11 @@ from pymongo import MongoClient, ReturnDocument
 from typing import List
 
 from ..db.db_context import get_db
+from ..limit import FIND_LIMIT
 from ..logic.wheel_of_destiny import update_weighted_choices
-from ..models.wheels_model import WheelModel, ParticipantModel, CreateWheelModel, UpdateWheelModel, UpdateWheelWinnerModel
+from ..models.histories_collection import HistoryModel
+from ..models.participant_model import ParticipantModel
+from ..models.wheels_collection import WheelModel, CreateWheelModel, UpdateWheelModel, UpdateWheelWinnerModel
 
 router = APIRouter(
     prefix='/wheels',
@@ -16,8 +19,7 @@ router = APIRouter(
 
 @router.get('/', response_description='list all wheels', response_model=List[WheelModel])
 def get_wheels(request: Request, db: MongoClient = Depends(get_db)):
-    # scale better if we exceed it in the future :P
-    wheels = db["wheels"].find(limit=1000)
+    wheels = db["wheels"].find(limit=FIND_LIMIT)
     wheels_list = list(wheels)
     return wheels_list
 
@@ -75,6 +77,12 @@ def delete_wheel(wheel_id: str, request: Request, db: MongoClient = Depends(get_
     if deleted_wheel is None:
         raise HTTPException(
             status_code=404, detail=f"Could not delete wheel with id of {wheel_id}")
+
+    # Delete all histories related to this wheel
+    db["histories"].delete_many({
+        "wheel_id": ObjectId(wheel_id)
+    })
+
     return deleted_wheel
 
 
@@ -114,17 +122,38 @@ def update_wheel_winner(wheel_id: str, request: Request, payload: UpdateWheelWin
     )
     if wheel is None:
         raise HTTPException(
-            status_code=404, detail=f"Could not update wheel winner with id of {wheel_id}")
+            status_code=404, detail=f"Could not find wheel with id of {wheel_id} to update")
 
+    spin_time = datetime.utcnow()
     updated_wheel = db["wheels"].find_one_and_update(
         {"_id": ObjectId(wheel_id)},
         {
             "$set":
             {
                 "participants": update_weighted_choices(wheel['participants'], payload['winner'], wheel['rate_of_effect']),
-                "last_spun_at": datetime.utcnow(),
+                "last_spun_at": spin_time,
             }
         },
         return_document=ReturnDocument.AFTER
     )
+    if updated_wheel is None:
+        raise HTTPException(
+            status_code=404, detail=f"Could not update wheel winner with id of {wheel_id}")
+
+    # Add to history of winners
+    winner_from_old_wheel = next((p for p in wheel["participants"] if p['name'] == payload['winner']), None)
+    if winner_from_old_wheel is None:
+         raise HTTPException(
+            status_code=404, detail=f"Failed to find player with name of {payload['winner']} after updating the wheel")
+
+    new_history = db["histories"].insert_one(
+        {
+            "wheel_id": updated_wheel['_id'],
+            "winner": winner_from_old_wheel,
+            "time": spin_time,
+        }
+    )
+    if new_history is None:
+        raise HTTPException(
+            status_code=404, detail=f"Could not add new history for {wheel_id}")
     return updated_wheel

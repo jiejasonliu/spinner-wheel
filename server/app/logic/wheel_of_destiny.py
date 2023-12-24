@@ -4,7 +4,7 @@ import pdb
 from numpy import random
 from typing import List
 
-from ..models.wheels_model import ParticipantModel
+from ..models.participant_model import ParticipantModel
 
 
 def update_weighted_choices(participants: List[ParticipantModel], winner: str, alpha: float = 0.25) -> List[ParticipantModel]:
