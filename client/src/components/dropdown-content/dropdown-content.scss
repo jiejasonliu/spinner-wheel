@@ -1,0 +1,11 @@
+@import "../../assets/styles";
+
+.c-dropdown-content {
+  position: absolute;
+  z-index: 1;
+  min-width: fit-content;
+
+  background-color: $grey;
+  border-radius: 8px;
+  @include tile-box-shadow(0.1);
+}

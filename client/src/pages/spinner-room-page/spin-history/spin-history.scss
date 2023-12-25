@@ -1,0 +1,57 @@
+@import "../../../assets/styles";
+
+.c-spin-history {
+  display: grid;
+  gap: 16px;
+
+  .winner-name {
+    color: $bright-turquoise;
+  }
+
+  .history-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    font-size: 20px;
+    color: $green-blue;
+
+    .entry {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      padding-bottom: 4px;
+
+      &:not(:nth-last-child(2)) {
+        border-bottom: 1px solid $dark-grey;
+      }
+
+      .winner-time {
+        @include text-overflow();
+      }
+
+      .winner-data {
+        color: $metallic-blue;
+      }
+    }
+
+    .disclaimer {
+      color: $metallic-blue;
+      font-size: 0.9em;
+      text-align: end;
+    }
+  }
+
+  .summary-container {
+    position: relative;
+    padding: 8px 24px;
+
+    @include tile-box-shadow(0.66);
+    border-radius: 8px;
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+    }
+  }
+}

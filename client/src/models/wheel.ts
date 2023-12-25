@@ -5,6 +5,7 @@ export interface Wheel {
   rate_of_effect: number;
   last_spun_at: string | null;
 }
+
 export interface Participant {
   name: string;
   weight: number;

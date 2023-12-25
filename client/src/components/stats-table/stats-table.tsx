@@ -1,3 +1,4 @@
+import { roundPlaces } from '@/helpers/math';
 import "./stats-table.scss";
 
 export interface StatEntry {
@@ -22,7 +23,7 @@ export const StatsTable = ({ entries }: StatsTableProps) => {
           key={`${entry.name}-${entry.weight}`}
         >
           <div className="stats-table-text">{entry.name}</div>
-          <div className="stats-table-text">{Math.round(entry.weight * 1000) / 1000}</div>
+          <div className="stats-table-text">{roundPlaces(entry.weight, 3)}</div>
         </div>
       ))}
     </>

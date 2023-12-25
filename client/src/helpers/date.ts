@@ -3,7 +3,7 @@ export function toHumanReadableDate(dateString: string) {
   const dateOptions: Intl.DateTimeFormatOptions = {
     weekday: "long",
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
   };
   const timeOptions: Intl.DateTimeFormatOptions = {

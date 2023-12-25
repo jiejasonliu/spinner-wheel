@@ -64,3 +64,8 @@ export function isDegreeInRange(targetDegree: number, current: number, range: nu
   const normalizedDiff = normalizeDegree(targetDegree - current);
   return normalizedDiff >= -range && normalizedDiff < range;
 }
+
+export function roundPlaces(numberToRound: number, places: number) {
+  const truncator = Math.pow(10, places);
+  return Math.round(numberToRound * truncator) / truncator;
+}
