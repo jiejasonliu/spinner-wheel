@@ -17,7 +17,7 @@ export interface NewSpinnerPopupProps {
 
 export const NewSpinnerPopup = ({ showing, onClose }: NewSpinnerPopupProps) => {
   const [title, setTitle] = useState("New Spinner");
-  const [rateOfEffect, setRateOfEffect] = useState("0.25");
+  const [rateOfEffect, setRateOfEffect] = useState("0.5");
   const [participants, setParticipants] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -45,7 +45,7 @@ export const NewSpinnerPopup = ({ showing, onClose }: NewSpinnerPopupProps) => {
             className={isValidRateOfEffect(rateOfEffect) ? "" : "error-input"}
             value={rateOfEffect}
             onChange={(e) => setRateOfEffect(e.target.value)}
-            placeholder="0.25"
+            placeholder="0.5"
           ></input>
         </div>
         <div className="add-participants-container">
@@ -102,7 +102,7 @@ export const NewSpinnerPopup = ({ showing, onClose }: NewSpinnerPopupProps) => {
 
     // reset form and close
     setTitle("New Spinner");
-    setRateOfEffect("0.25");
+    setRateOfEffect("0.5");
     setParticipants("");
     onClose();
   }
