@@ -25,4 +25,10 @@
   .spinner-row {
     width: 100%;
   }
+
+  .loading-container {
+    display: grid;
+    place-items: center;
+    min-height: 50vh;
+  }
 }

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import triangleIcon from "@/assets/svgs/triangle.svg";
 import { DropdownContent } from "@/components/dropdown-content/dropdown-content";
+import { Loading } from "@/components/loading/loading";
 import { StatsTable } from "@/components/stats-table/stats-table";
 import {
   WheelSpinner,
@@ -20,12 +21,16 @@ export const SpinnerRoomPage = () => {
   const [wheel, setWheel] = useState<Wheel | undefined>(undefined);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState<boolean | undefined>(
+    undefined
+  );
 
   const spinHistoryButtonRef = useRef(null);
   const wheelSpinnerRef = useRef<WheelSpinnerForwardRef>(null);
 
   const [wheels, setWheels] = useRecoilState(wheelsState);
   const wheelsClient = useMemo(getWheelsClient, []);
+
   const params = useParams();
   const navigate = useNavigate();
 
@@ -66,21 +71,20 @@ export const SpinnerRoomPage = () => {
                 ? toHumanReadableDate(wheel.last_spun_at)
                 : "Never"}
             </span>
-            <DropdownContent
-              className="spin-history-dropdown-content"
-              show={isHistoryOpen}
-              outsideClickExclusions={[spinHistoryButtonRef]}
-              onOutsideClick={() => setIsHistoryOpen(false)}
-            >
-              <SpinHistory wheelId={wheel._id}></SpinHistory>
-            </DropdownContent>
+            {getSpinHistoryDropdown(wheel)}
           </div>
           <button
-            className={`spin-history-button ${isHistoryOpen ? 'open' : ''}`}
+            className={`spin-history-button ${isHistoryOpen ? "open" : ""}`}
             onClick={toggleHistory}
             ref={spinHistoryButtonRef}
           >
-            <span className="history-icon">🛈</span>
+            {isHistoryLoaded !== false ? (
+              <span className="history-icon">🛈</span>
+            ) : (
+              <div className="loading-icon">
+                <Loading size="small"></Loading>
+              </div>
+            )}
           </button>
         </div>
       </div>
@@ -118,7 +122,29 @@ export const SpinnerRoomPage = () => {
 
   function toggleHistory(event: React.MouseEvent) {
     event.stopPropagation();
+
+    // Only if never loaded before
+    setIsHistoryLoaded((previousValue) => {
+      return previousValue === undefined ? false : previousValue;
+    });
+
     setIsHistoryOpen((previousValue) => !previousValue);
+  }
+
+  function getSpinHistoryDropdown(wheel: Wheel) {
+    return (
+      <DropdownContent
+        className="spin-history-dropdown-content"
+        show={isHistoryOpen}
+        outsideClickExclusions={[spinHistoryButtonRef]}
+        onOutsideClick={() => setIsHistoryOpen(false)}
+      >
+        <SpinHistory
+          wheel={wheel}
+          onHistoryLoaded={() => setIsHistoryLoaded(true)}
+        ></SpinHistory>
+      </DropdownContent>
+    );
   }
 
   function navigateHome() {

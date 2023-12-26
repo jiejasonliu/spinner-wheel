@@ -8,4 +8,14 @@
   background-color: $grey;
   border-radius: 8px;
   @include tile-box-shadow(0.1);
+
+  transition: opacity 0.3s;
+
+  &.visible {
+    opacity: 1;
+  }
+
+  &.hidden {
+    opacity: 0;
+  }
 }

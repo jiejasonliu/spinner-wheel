@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
+import { Loading } from "@/components/loading/loading";
 import { NewSpinnerPopup } from "@/components/_popups/new-spinner-popup/new-spinner-popup";
 import { SpinnerRow } from "@/components/spinner-row/spinner-row";
 import { getWheelsClient } from "@/services/wheels-client";
@@ -11,6 +12,7 @@ const MIN_DATE = new Date(-8640000000000000);
 
 export const SpinnerDocketPage = () => {
   const [showNewSpinnerPopup, setShowNewSpinnerPopup] = useState(false);
+  const [wheelsLoaded, setWheelsLoaded] = useState(false);
 
   const [wheels, setWheels] = useRecoilState(wheelsState);
   const wheelsClient = useMemo(getWheelsClient, []);
@@ -24,6 +26,7 @@ export const SpinnerDocketPage = () => {
     (async () => {
       const wheels = await wheelsClient.getWheels();
       setWheels(wheels);
+      setWheelsLoaded(true);
     })();
   }, []);
 
@@ -45,8 +48,12 @@ export const SpinnerDocketPage = () => {
               />
             </div>
           ))
-        ) : (
+        ) : wheelsLoaded ? (
           <p>There are no spinners yet. Be the first to make one!</p>
+        ) : (
+          <div className="loading-container">
+            <Loading size="large"></Loading>
+          </div>
         )}
       </div>
 

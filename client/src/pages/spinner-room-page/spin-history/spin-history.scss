@@ -1,5 +1,12 @@
 @import "../../../assets/styles";
 
+.c-spin-history-loading {
+  display: grid;
+  place-items: center;
+  min-width: min(112px, 55vw);
+  min-height: min(96px, 50vh);
+}
+
 .c-spin-history {
   display: grid;
   gap: 16px;

@@ -1,0 +1,65 @@
+@import '../../assets/styles';
+
+$color: $light-blue;
+
+// loading icon taken from https://loading.io/css/
+.c-loading {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  
+
+  &.medium {
+    width: 80px;
+    height: 80px;
+
+    div {
+      width: 64px;
+      height: 64px;
+      border-width: 8px;
+    }
+  }
+
+  &.large {
+    width: 160px;
+    height: 160px;
+    div {
+      width: 124px;
+      height: 124px;
+      border-width: 16px;
+    }
+  }
+
+  div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid $color;
+    border-radius: 50%;
+    animation: c-loading-animation 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: $color transparent transparent transparent;
+
+    &:nth-child(1) {
+      animation-delay: -0.45s;
+    }
+    &:nth-child(2) {
+      animation-delay: -0.3s;
+    }
+    &:nth-child(3) {
+      animation-delay: -0.15s;
+    }
+  }
+}
+
+@keyframes c-loading-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

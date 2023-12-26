@@ -48,19 +48,24 @@
     }
 
     .spin-history-button {
-      padding: 4px 10px;
+      padding: 8px 12px;
       margin-left: 16px;
-      @include borderless-glow-button(0.75em);
+      @include borderless-glow-button(0.33em);
 
       &.open {
         background-color: $grey;
       }
-
+      
+      .loading-icon {
+        display: inline-block;
+        padding-top: 2px;
+      }
+      
       .history-icon {
         display: inline-block;
         color: $green-blue;
-        font-size: 1.25em;
-        padding-bottom: 1px;
+        font-size: 1.2em;
+        line-height: 1.2em;
       }
     }
   }

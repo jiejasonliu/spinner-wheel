@@ -18,15 +18,19 @@ export const DropdownContent = ({
 }: PropsWithChildren<DropdownContentProps>) => {
   const contentRef = useRef(null);
 
-  useOutsideClick([contentRef, ...outsideClickExclusions], () => onOutsideClick(), show);
+  useOutsideClick(
+    [contentRef, ...outsideClickExclusions],
+    () => onOutsideClick(),
+    show
+  );
 
+  const visibleClass = show ? "visible" : "hidden";
   return (
-    <>
-      {show && (
-        <div className={`c-dropdown-content ${className}`} ref={contentRef}>
-          {children}
-        </div>
-      )}
-    </>
+    <div
+      className={`c-dropdown-content ${className} ${visibleClass}`}
+      ref={contentRef}
+    >
+      {children}
+    </div>
   );
 };
