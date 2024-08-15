@@ -16,10 +16,10 @@ import {
 import { WheelDrawerInfo } from "./draw/wheel-drawer-info";
 import { tryFitText } from "@/components/wheel-spinner/draw/fit-text";
 
-const THRESHOLD = 0.03; // degs per second to stop spinning
-const ROTATION_FACTOR = 0.25; // how fast to rotate
-const EXTRA_SPINS = 12; // roughly  how many extra spins?
-const DAMPING_FACTOR = 0.992; // by how much should we slow down the spinner
+const THRESHOLD = 0.0295; // degs per second to stop spinning
+const ROTATION_FACTOR = 0.2525; // how fast to rotate
+const EXTRA_SPINS = 16; // roughly how many extra spins?
+const DAMPING_FACTOR = 0.9925; // by how much should we slow down the spinner
 
 const COLORS = ["#003f5c", "#58508d", "#bc5090", "#ff6361", "#ffa600"];
 
